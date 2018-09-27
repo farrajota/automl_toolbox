@@ -199,7 +199,11 @@ def create_html_model_evaluation_classification(eval_info: Dict[str, Union[str, 
                     <td>{nfeats}</td>
                 </tr>
                 <tr>
-                    <th>Accuracy</th>
+                    <th>Metric</th>
+                    <td>accuracy</td>
+                </tr>
+                <tr>
+                    <th>Score</th>
                     <td>{score:.2f}%</td>
                 </tr>
                 </tbody>
@@ -229,6 +233,10 @@ def create_html_model_evaluation_regression(eval_info: Dict[str, Union[str, floa
                 <tr>
                     <th>Number of features</th>
                     <td>{nfeats}</td>
+                </tr>
+                <tr>
+                    <th>Metric</th>
+                    <td>neg_mean_squared_error</td>
                 </tr>
                 <tr>
                     <th>Score</th>
