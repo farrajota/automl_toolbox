@@ -11,6 +11,8 @@ import lightgbm as lgb
 from sklearn.model_selection import cross_val_score
 from typing import Dict, Union, List, Optional
 
+from .exceptions import UndefinedMethodError
+
 
 def profiler(df: pd.DataFrame,
              target: str,
@@ -134,7 +136,7 @@ def evaluate_model_on_data(df: pd.DataFrame,
         html: str = create_html_model_evaluation_regression(eval_info)
         method_: str = 'regression'
     else:
-        raise Exception(f"Undefined method: {method}.")
+        raise UndefinedMethodError(f"Undefined method: {method}.")
     return {
         "method": method_,
         "eval_info": eval_info,
