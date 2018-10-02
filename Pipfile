@@ -8,6 +8,8 @@ pandas = "*"
 numpy = "*"
 scikit-learn = "*"
 pandas-profiling = "*"
+xgboost = "*"
+lightgbm = "*"
 
 [dev-packages]
 "flake8" = "*"
