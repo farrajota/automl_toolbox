@@ -11,6 +11,7 @@ from sklearn.model_selection import cross_val_score
 from automl_toolbox.model_selection import xgboost
 from automl_toolbox.model_selection import lightgbm
 from automl_toolbox.exceptions import raise_invalid_task_error, raise_invalid_model_backend_error
+from automl_toolbox.utils import parse_backend_name_string, parse_task_name_string
 
 
 def cross_validation_score(df, target, task='classification', backend='lightgbm',
@@ -81,26 +82,6 @@ def cross_validation_score(df, target, task='classification', backend='lightgbm'
     df_scores = pd.DataFrame(data={'score': scores})
     df_scores.index.name = 'cv'
     return df_scores
-
-
-def parse_task_name_string(task):
-    if task.lower() in ['classification', 'cls']:
-        task_name = 'classification'
-    elif task.lower() in ['regression', 'reg']:
-        task_name = 'regression'
-    else:
-        raise_invalid_task_error(task)
-    return task_name
-
-
-def parse_backend_name_string(backend):
-    if backend.lower() in ['xgboost', 'xgb']:
-        backend_name = 'xgboost'
-    elif backend.lower() in ['lightgbm', 'lgb']:
-        backend_name = 'lightgbm'
-    else:
-        raise_invalid_model_backend_error(backend)
-    return backend_name
 
 
 def get_model(task: str, backend: str, params: dict):
