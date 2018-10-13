@@ -5,7 +5,7 @@ Methods for cross-validating data using LightGBM models.
 
 import lightgbm as lgb
 
-from .exceptions import raise_invalid_task_error
+from automl_toolbox.exceptions import raise_invalid_task_error
 
 
 def get_model_by_task(task, params):

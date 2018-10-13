@@ -11,7 +11,7 @@ import lightgbm as lgb
 from sklearn.model_selection import cross_val_score
 from typing import Dict, Union, List, Optional
 
-from .exceptions import UndefinedMethodError
+from automl_toolbox.exceptions import UndefinedMethodError
 
 
 def profiler(df: pd.DataFrame,

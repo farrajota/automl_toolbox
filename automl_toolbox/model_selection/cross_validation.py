@@ -10,8 +10,7 @@ from sklearn.model_selection import cross_val_score
 
 from automl_toolbox.model_selection import xgboost
 from automl_toolbox.model_selection import lightgbm
-
-from .exceptions import raise_invalid_task_error, raise_invalid_model_backend_error
+from automl_toolbox.exceptions import raise_invalid_task_error, raise_invalid_model_backend_error
 
 
 def cross_validation_score(df, target, task='classification', backend='lightgbm',
