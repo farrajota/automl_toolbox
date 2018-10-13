@@ -18,10 +18,10 @@ def get_model_by_task(task, params):
         model = lgb.LGBMRegressor(**params)
     else:
         raise_invalid_task_error(task)
-    return model, scoring
+    return model
 
 
-def get_objective_by_task(task):
+def get_objective_by_task(df, target, task):
     """Returns an objective and a set of metrics for a specific task."""
     if task == 'classification':
         if df[target].nunique() == 2:

@@ -18,10 +18,10 @@ def get_model_by_task(task, params):
         model = xgb.XGBRegressor(**params)
     else:
         raise_invalid_task_error(task)
-    return model, scoring
+    return model
 
 
-def get_objective_by_task(task):
+def get_objective_by_task(df, target, task):
     """Returns an objective and a set of metrics for a specific task."""
     if task.lower() in ['classification', 'cls']:
         if df[target].nunique() == 2:
