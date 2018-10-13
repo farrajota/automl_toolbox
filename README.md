@@ -1,8 +1,8 @@
-# ADAT: AutoML toolbox
+# AutoML toolbox
 
 [![Python 3.6](https://img.shields.io/badge/python-3.6-blue.svg)](https://www.python.org/downloads/release/python-360/)
 
-ADAT (Automatic Data Assistant Toolbox) is a framework for building automatic Data Science solutions. Use it as your personal Data Science assistant / wizard for creating ETL processes and/or a fully automated machine learning pipelines with ease.
+The Automatic Machine Learning toolbox (AutoML) is a collection of methods with a simple API which can assist you in your Data Science tasks by providing boilerplate code in a form of simple functions ready to be used. You can use it as your personal Data Science assistant / wizard for creating ETL processes and/or a fully automated machine learning pipelines in a simple and quick way.
 
 This project is intended to be a testing playground for a bunch of wrapper methods to serve as high-level APIs to a bunch of common tasks like:
 
