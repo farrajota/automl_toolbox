@@ -6,7 +6,7 @@ from setuptools import setup, find_packages
 
 
 # set version
-VERSION = '0.0.1'
+VERSION = '0.0.2'
 
 
 def get_requirements():
