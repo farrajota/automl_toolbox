@@ -8,6 +8,16 @@ ADAT (Automatic Data Assistant Toolbox) is a framework for building automatic Da
 
 This code base is in heavy development for now. Once it reaches `v0.1.0` you may then try it, but for now you are at your own risk.
 
+## Installation
+
+For now, to install this package you must build it from source. To do that, just run the following command in the terminal:
+
+```
+python setup.py install
+```
+
+> Note: once this package reaches `v0.1.0` it will be possible to install it via pip.
+
 ## TODO
 
 Funcionalities to be added to the toolbox:
