@@ -8,14 +8,14 @@ import xgboost as xgb
 from .exceptions import raise_invalid_task_error
 
 
-def get_model_by_task(task):
+def get_model_by_task(task, params):
     """Returns a model for a specific task."""
     assert task
-    assert backend
+    assert params
     if task.lower() in ['classification', 'cls']:
-        model = xgb.XGBClassifier()
+        model = xgb.XGBClassifier(**params)
     elif task.lower() in ['regression', 'reg']:
-        model = xgb.XGBRegressor()
+        model = xgb.XGBRegressor(**params)
     else:
         raise_invalid_task_error(task)
     return model, scoring

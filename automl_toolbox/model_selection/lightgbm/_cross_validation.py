@@ -8,14 +8,14 @@ import lightgbm as lgb
 from .exceptions import raise_invalid_task_error
 
 
-def get_model_by_task(task):
+def get_model_by_task(task, params):
     """Returns a model for a specific task."""
     assert task
-    assert backend
+    assert params
     if task == 'classification':
-        model = lgb.LGBMClassifier()
+        model = lgb.LGBMClassifier(**params)
     elif task == 'regression':
-        model = lgb.LGBMRegressor()
+        model = lgb.LGBMRegressor(**params)
     else:
         raise_invalid_task_error(task)
     return model, scoring

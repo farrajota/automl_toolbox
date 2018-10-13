@@ -104,14 +104,15 @@ def parse_backend_name_string(backend):
     return backend_name
 
 
-def get_model(task, backend):
+def get_model(task: str, backend: str, params: dict):
     """Returns a model for a specific task and backend."""
     assert task
     assert backend
+    assert params
     if backend == 'xgboost':
-        model = xgboost.get_model_by_task(task)
+        model = xgboost.get_model_by_task(task, params)
     elif backend == 'lightgbm':
-        model = lightgbm.get_model_by_task(task)
+        model = lightgbm.get_model_by_task(task, params)
     else:
         raise_invalid_model_backend_error(backend)
     return model
