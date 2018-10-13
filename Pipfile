@@ -10,6 +10,8 @@ scikit-learn = "*"
 pandas-profiling = "*"
 xgboost = "*"
 lightgbm = "*"
+hyperopt = "*"
+hpbandster = "*"
 
 [dev-packages]
 "flake8" = "*"
