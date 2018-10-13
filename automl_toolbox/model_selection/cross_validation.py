@@ -250,7 +250,7 @@ def get_model_parameters(backend):
     if backend == 'xgboost':
         parameters = xgboost.get_default_parameters()
     elif backend == 'lightgbm':
-        parameters = lightgb.get_default_parameters()
+        parameters = lightgbm.get_default_parameters()
     else:
         raise_invalid_model_backend_error(backend)
     return parameters
@@ -260,7 +260,7 @@ def get_cross_validation_iter_method(backend):
     if backend == 'xgboost':
         fn = xgboost.cross_validation_iter
     elif backend == 'lightgbm':
-        fn = lightgb.cross_validation_iter
+        fn = lightgbm.cross_validation_iter
     else:
         raise_invalid_model_backend_error(backend)
     return fn
