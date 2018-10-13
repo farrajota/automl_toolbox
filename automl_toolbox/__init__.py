@@ -8,5 +8,8 @@ Data Science assistant / wizard for creating ETL processes
 and/or a fully automated machine learning pipelines with ease.
 """
 
+
+import pkg_resources
+
 # package version
 __version__ = pkg_resources.get_distribution('automl_toolbox').version
