@@ -128,9 +128,9 @@ def get_cv_scoring(task):
 
 
 def cross_validation_score_iter(df, target, task='classification', backend='xgboost',
-                                n_rounds=300, nfold=5, stratified=False, shuffle=True,
-                                early_stopping_rounds=15, seed=0, show_stdv=True,
-                                device_type='cpu', verbose=0):
+                                params=None, n_rounds=300, nfold=5, stratified=False,
+                                shuffle=True, early_stopping_rounds=15, seed=0,
+                                show_stdv=True, device_type='cpu', verbose=0):
     """Cross-validates a model on input data.
 
     Parameters
@@ -184,15 +184,19 @@ def cross_validation_score_iter(df, target, task='classification', backend='xgbo
     y = df[target].values
 
     # Get model / task parameters
-    params, metrics, cross_val_iter_fn = get_cv_iter_params(task, backend)
-
-    if verbose_eval > 0:
-        print(f"Starting cross-validation (task = '{task}')...")
+    if params is None:
+        params = get_model_parameters(backend)
+    params['params'] = device_type
+    params['objective'] = get_model_task_objective(df, target, task, backend)
+    metrics = get_task_metrics(task)
 
     if verbose > 0:
         verbose_eval = verbose
+        print(f"Starting cross-validation (task = '{task}')...")
     else:
         verbose_eval = None
+
+    cross_val_iter_fn = get_cross_validation_iter_method(backend)
     cv_results = cross_val_iter_fn(
         data=X,
         labels=y,
@@ -209,19 +213,11 @@ def cross_validation_score_iter(df, target, task='classification', backend='xgbo
     )
     if verbose > 0:
         print('\nCross-validation complete!')
+
     return pd.DataFrame(cv_results)
 
 
-def get_cv_iter_params(task, backend):
-    """Returns the task's name, objective and metrics for evaluation for XGBoost models."""
-    metrics = get_metrics(task)
-    params = get_model_parameters(backend)
-    params["objective"] = get_objective_by_task(task, backend)
-    cross_val_iter_fn = get_cross_validation_iter_method(backend)
-    return params, metrics, cross_val_iter_fn
-
-
-def get_metrics(task):
+def get_task_metrics(task):
     if task == 'classification':
         metrics = 'auc'
     elif task == 'regression':
@@ -231,11 +227,11 @@ def get_metrics(task):
     return metrics
 
 
-def get_objective_by_task(task, backend):
+def get_model_task_objective(df, target, task, backend):
     if backend == 'xgboost':
-        objective = xgboost.get_objective_by_task(task)
+        objective = xgboost.get_objective_by_task(df, target, task)
     elif backend == 'lightgbm':
-        objective = lightgbm.get_objective_by_task(task)
+        objective = lightgbm.get_objective_by_task(df, target, task)
     else:
         raise_invalid_model_backend_error(backend)
     return objective
