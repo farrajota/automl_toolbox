@@ -248,12 +248,13 @@ def get_model_parameters(backend):
     Warning: The list of parameters is vary basic at this point.
     A more detailed list of parameters will be se in a later stage
     """
-    # TODO : create a more detailed list of parameters
-    return {
-        'learning_rate': 0.03,
-        'max_depth': 10,
-        'tree_method': 'exact',
-    }
+    if backend == 'xgboost':
+        parameters = xgboost.get_default_parameters()
+    elif backend == 'lightgbm':
+        parameters = lightgb.get_default_parameters()
+    else:
+        raise_invalid_model_backend_error(backend)
+    return parameters
 
 
 def get_cross_validation_iter_method(backend):
