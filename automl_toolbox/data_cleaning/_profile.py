@@ -17,8 +17,7 @@ from .exceptions import UndefinedMethodError
 def profiler(df: pd.DataFrame,
              target: str,
              method: str = 'classification',
-             evaluate_model: bool = True,
-             show_report: bool = True
+             show: str = 'all'
              ) -> Dict[str, Union[ProfileReport, dict]]:
     """Creates a profile report for the input data.
 
@@ -28,12 +27,10 @@ def profiler(df: pd.DataFrame,
         Input dataframe
     target : str
         Name of the feature target for training a model
-    method : str, default = 'classification'
+    method : str, optional (default='classification')
         Name of the task to train the model (e.g., classification, regression)
-    evaluate_model : bool, default = True
-        Train a model (if True)
-    show_report : bool, default = True
-        Plot the profile info to the screen
+    show : str, optional (default='all')
+        Displays sections of the profile report.
 
     Returns
     -------
@@ -41,14 +38,142 @@ def profiler(df: pd.DataFrame,
         Report data.
     """
     profile_data = ProfileReport(df)
-    if evaluate_model:
-        profile_model = evaluate_model_on_data(df, target, method)
-    if show_report:
-        display_report(profile_data, profile_model)
+    if show.lower() in ['all', 'model']:
+        profile_model = model_data(df, target, method)
+    display_report(profile_data, profile_model, show)
     return {
         "report": profile_data,
         "model": profile_model
     }
+
+
+def model_data(df: pd.DataFrame,
+               target: str,
+               method: str
+               ) -> Dict[str, Union[str, float]]:
+    """Trains and evaluates the performance of a lightgbm model
+    on the data."""
+    if method.lower() in ['classification', 'cls', 'clf']:
+        eval_info: float = evaluate_classifier(df, target)
+        html: str = create_html_model_evaluation_classification(eval_info)
+        method_: str = 'classification'
+    elif method.lower() in ['regression', 'reg']:
+        eval_info: float = evaluate_regressor(df, target)
+        html: str = create_html_model_evaluation_regression(eval_info)
+        method_: str = 'regression'
+    else:
+        raise UndefinedMethodError(f"Undefined method: {method}.")
+    return {
+        "method": method_,
+        "eval_info": eval_info,
+        "html": html
+    }
+
+
+def evaluate_classifier(df: pd.DataFrame,
+                        target: Union[str, List[str]],
+                        cv: int = 5
+                        ) -> Dict[str, Union[float, int]]:
+    """Train and evaluate a classifier model on an input data."""
+    X = df.drop(columns=[target])
+    X = pd.get_dummies(X, drop_first=True)
+    y = df[target]
+    clf = lgb.LGBMClassifier()
+    scores = cross_val_score(clf, X, y, scoring='accuracy', cv=cv)
+    return {
+        "score": scores.mean(),
+        "nfeats": len(X.columns),
+        "cross_validation": 5
+    }
+
+
+def create_html_model_evaluation_classification(eval_info: Dict[str, Union[str, float]]) -> str:
+    return """
+        <div>
+            <p class="h4">Model evaluation</p>
+            <table class="stats" style="margin-left: 1em;">
+                <tbody>
+                <tr>
+                    <th>Task</th>
+                    <td>Classification</td>
+                </tr>
+                <tr>
+                    <th>Model</th>
+                    <td>LightGBM</td>
+                </tr>
+                <tr>
+                    <th>Number of cv splits</th>
+                    <td>{cv}</td>
+                </tr>
+                <tr>
+                    <th>Number of features</th>
+                    <td>{nfeats}</td>
+                </tr>
+                <tr>
+                    <th>Metric</th>
+                    <td>accuracy</td>
+                </tr>
+                <tr>
+                    <th>Score</th>
+                    <td>{score:.2f}%</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    """.format(cv=eval_info['cross_validation'], nfeats=eval_info['nfeats'], score=eval_info['score'] * 100)
+
+
+def evaluate_regressor(df: pd.DataFrame,
+                       target: Union[str, List[str]],
+                       cv: int = 5
+                       ) -> Dict[str, Union[float, int]]:
+    """Train and evaluate a regressor model on an input data."""
+    X = df.drop(columns=[target])
+    X = pd.get_dummies(X, drop_first=True)
+    y = df[target]
+    reg = lgb.LGBMRegressor()
+    scores = cross_val_score(reg, X, y, scoring='neg_mean_squared_error', cv=5)
+    return {
+        "score": scores.mean(),
+        "nfeats": len(X.columns),
+        "cross_validation": 5
+    }
+
+
+def create_html_model_evaluation_regression(eval_info: Dict[str, Union[str, float]]) -> str:
+    return """
+        <div>
+            <p class="h4">Model evaluation</p>
+            <table class="stats" style="margin-left: 1em;">
+                <tbody>
+                <tr>
+                    <th>Task</th>
+                    <td>Regression</td>
+                </tr>
+                <tr>
+                    <th>Model</th>
+                    <td>LightGBM</td>
+                </tr>
+                <tr>
+                    <th>Number of cv splits</th>
+                    <td>{cv}</td>
+                </tr>
+                <tr>
+                    <th>Number of features</th>
+                    <td>{nfeats}</td>
+                </tr>
+                <tr>
+                    <th>Metric</th>
+                    <td>neg_mean_squared_error</td>
+                </tr>
+                <tr>
+                    <th>Score</th>
+                    <td>{score:.2f}</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    """.format(cv=eval_info['cross_validation'], nfeats=eval_info['nfeats'], score=eval_info['score'])
 
 
 def display_report(profile_data: ProfileReport,
@@ -119,132 +244,3 @@ def detect_numerical_low_unique_rows_percentage(df: pd.DataFrame,
                 if verbose:
                     print(f'{feature}: {n_unique_percentage}%  ({n_unique}/{feature_size})')
     return features_low
-
-
-def evaluate_model_on_data(df: pd.DataFrame,
-                           target: str,
-                           method: str
-                           ) -> Dict[str, Union[str, float]]:
-    """Trains and evaluates the performance of a lightgbm model
-    on the data."""
-    if method.lower() in ['classification', 'cls', 'clf']:
-        eval_info: float = evaluate_classifier(df, target)
-        html: str = create_html_model_evaluation_classification(eval_info)
-        method_: str = 'classification'
-    elif method.lower() in ['regression', 'reg']:
-        eval_info: float = evaluate_regressor(df, target)
-        html: str = create_html_model_evaluation_regression(eval_info)
-        method_: str = 'regression'
-    else:
-        raise UndefinedMethodError(f"Undefined method: {method}.")
-    return {
-        "method": method_,
-        "eval_info": eval_info,
-        "html": html
-    }
-
-
-def evaluate_classifier(df: pd.DataFrame,
-                        target: Union[str, List[str]],
-                        cv: int = 5
-                        ) -> Dict[str, Union[float, int]]:
-    """Train and evaluate a classifier model on an input data."""
-    X = df.drop(columns=[target])
-    X = pd.get_dummies(X, drop_first=True)
-    y = df[target]
-    clf = lgb.LGBMClassifier()
-    scores = cross_val_score(clf, X, y, scoring='accuracy', cv=cv)
-    return {
-        "score": scores.mean(),
-        "nfeats": len(X.columns),
-        "cross_validation": 5
-    }
-
-
-def evaluate_regressor(df: pd.DataFrame,
-                       target: Union[str, List[str]],
-                       cv: int = 5
-                       ) -> Dict[str, Union[float, int]]:
-    """Train and evaluate a regressor model on an input data."""
-    X = df.drop(columns=[target])
-    X = pd.get_dummies(X, drop_first=True)
-    y = df[target]
-    reg = lgb.LGBMRegressor()
-    scores = cross_val_score(reg, X, y, scoring='neg_mean_squared_error', cv=5)
-    return {
-        "score": scores.mean(),
-        "nfeats": len(X.columns),
-        "cross_validation": 5
-    }
-
-
-def create_html_model_evaluation_classification(eval_info: Dict[str, Union[str, float]]) -> str:
-    return """
-        <div>
-            <p class="h4">Model evaluation</p>
-            <table class="stats" style="margin-left: 1em;">
-                <tbody>
-                <tr>
-                    <th>Task</th>
-                    <td>Classification</td>
-                </tr>
-                <tr>
-                    <th>Model</th>
-                    <td>LightGBM</td>
-                </tr>
-                <tr>
-                    <th>Number of cv splits</th>
-                    <td>{cv}</td>
-                </tr>
-                <tr>
-                    <th>Number of features</th>
-                    <td>{nfeats}</td>
-                </tr>
-                <tr>
-                    <th>Metric</th>
-                    <td>accuracy</td>
-                </tr>
-                <tr>
-                    <th>Score</th>
-                    <td>{score:.2f}%</td>
-                </tr>
-                </tbody>
-            </table>
-        </div>
-    """.format(cv=eval_info['cross_validation'], nfeats=eval_info['nfeats'], score=eval_info['score'] * 100)
-
-
-def create_html_model_evaluation_regression(eval_info: Dict[str, Union[str, float]]) -> str:
-    return """
-        <div>
-            <p class="h4">Model evaluation</p>
-            <table class="stats" style="margin-left: 1em;">
-                <tbody>
-                <tr>
-                    <th>Task</th>
-                    <td>Regression</td>
-                </tr>
-                <tr>
-                    <th>Model</th>
-                    <td>LightGBM</td>
-                </tr>
-                <tr>
-                    <th>Number of cv splits</th>
-                    <td>{cv}</td>
-                </tr>
-                <tr>
-                    <th>Number of features</th>
-                    <td>{nfeats}</td>
-                </tr>
-                <tr>
-                    <th>Metric</th>
-                    <td>neg_mean_squared_error</td>
-                </tr>
-                <tr>
-                    <th>Score</th>
-                    <td>{score:.2f}</td>
-                </tr>
-                </tbody>
-            </table>
-        </div>
-    """.format(cv=eval_info['cross_validation'], nfeats=eval_info['nfeats'], score=eval_info['score'])
