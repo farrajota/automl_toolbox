@@ -4,6 +4,17 @@
 
 ADAT (Automatic Data Assistant Toolbox) is a framework for building automatic Data Science solutions. Use it as your personal Data Science assistant / wizard for creating ETL processes and/or a fully automated machine learning pipelines with ease.
 
+This project is intended to be a testing playground for a bunch of wrapper methods to serve as high-level APIs to a bunch of common tasks like:
+
+- data profiling
+- cleaning missing values
+- detecting outliers
+- performing feature engineering
+- hyper-parameter optimization
+- evaluating machine learning models
+- creating ensembles of such models
+- etc.
+
 ## Warning
 
 This code base is in heavy development for now. Once it reaches `v0.1.0` you may then try it, but for now you are at your own risk.
@@ -18,11 +29,32 @@ python setup.py install
 
 > Note: once this package reaches `v0.1.0` it will be possible to install it via pip.
 
+## Key Libraries used
+
+This toolbox integrates the following packages in its core for doing most of its work. Basically, you can think of this package as a wrapper for a bunch functions you would uneed like cross-validation, hyperparameter optimization, etc., but with a nice, high-level API.
+
+- Numpy
+- Pandas
+- pandas-profiling (data profiler)
+- Scikit-learn (collection of ML libs)
+- xgboost (ML lib)
+- lightgbm (ML lib)
+- Hyperopt (hyperparam optim - bo)
+- HpBandSter (hyperparam optim - hyperband + bo)
+
+### Libraries to be integrated in the future
+
+- dask (distributed computing / big data)
+- keras (DL lib)
+- feature-tools (automatic feature engineering)
+- [pygdf](https://github.com/rapidsai/pygdf) (GPU DataFrame)
+
+
 ## TODO
 
 Funcionalities to be added to the toolbox:
 
-- [ ] basic data profiler
+- [ ] data profiler
 - [ ] automatic cleaning of missing values
 - [ ] automatic analysis and cleaning of outliers
 - [ ] automatic feature transformations / normalization
@@ -31,6 +63,7 @@ Funcionalities to be added to the toolbox:
 - [ ] automatic model selection
 - [ ] automatic model optimization (hyper-parameter optimization)
 - [ ] automatic ensembling of models
+- [ ] pre-defined parameter list of the most popular ML models in scikit-learn
 - [ ] distributed computing (integrate Dask)
 
 
