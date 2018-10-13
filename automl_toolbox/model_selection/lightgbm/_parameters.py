@@ -70,9 +70,9 @@ parameters = {
     },
     "feature_fraction": {
         "type": 'float',
-        "default": 0,
+        "default": 1.0,
         "sampling": 'uniform',
-        "min_range": 0,  # 0.0 <= bagging_freq <= 1.0
+        "min_range": 1e-6,  # 0.0 <= bagging_freq <= 1.0
         "max_range": 1
     }
 }
