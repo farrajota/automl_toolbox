@@ -1,6 +1,6 @@
 """
 The Data Science Assistant
-======================
+==========================
 
 The Data Science ``Assistant`` provides a collection of methods to address
 the most typical procedures when analyzing data. Such processes include::
@@ -31,20 +31,51 @@ to access and modify its configurations and set it up according to their needs.
 
 
 import pandas as pd
+from pandas_profiling import ProfileReport
+from typing import Dict, Union, List, Optional
 
 from .utils import parse_task_name_string, parse_backend_name_string
+from .data_cleaning import profiler
 
 
-class Assistant:
+class Assistant(object):
     """Data Science Assistance / Wizard."""
 
-    def __init__(self, df: pd.DataFrame, target: str, task: str = 'classification',
+    def __init__(self,
+                 df: pd.DataFrame,
+                 target: str,
+                 task: str = 'classification',
                  backend: str = 'lightgbm') -> None:
         self.df = df
         self.target = target
         self.task = parse_task_name_string(task)
         self.backend = parse_backend_name_string(backend)
 
-    def profiler(self):
-        """Data Profiler."""
-        pass
+    def profile(self,
+                df: pd.DataFrame = None,
+                target: str = None,
+                task: str = None) -> Dict[str, Union[ProfileReport, dict]]:
+        """Generates profile reports from a Pandas DataFrame.
+
+        Parameters
+        ----------
+        df : pandas.DataFrame, optional
+            Input pandas DataFrame to be profiled.
+        target : str, optional
+            Target column of the DataFrame.
+        task : str, optional
+            Type of task to analyze. Options: ('classification', 'cls', 'regression', 'reg')
+
+        Returns
+        -------
+        dict
+            Report of the data.
+        """
+        if df:
+            df_analysis = df
+            target_analysis = target
+        else:
+            df_analysis = self.df
+            target_analysis = self.target
+        report: dict = profiler(df_analysis, target_analysis)
+        return report
