@@ -14,16 +14,16 @@ from automl_toolbox.exceptions import raise_invalid_task_error, raise_invalid_mo
 from automl_toolbox.utils import parse_backend_name_string, parse_task_name_string
 
 
-def cross_validation_score(df, target, task='classification', backend='lightgbm',
+def cross_validation_score(X, y, task='classification', backend='lightgbm',
                            params=None, cv=5, n_jobs=None, device_type='cpu',
                            verbose=0):
     """Evaluates a Gradient Boosting Tree model by cross-validation.
 
     Parameters
     ----------
-    df : pandas.DataFrame
+    X : pandas.DataFrame
         Input DataFrame.
-    target : str/list
+    y : str/list
         Target feature name(s).
     task : str, optional (default='classification')
         Name of the task.
@@ -35,22 +35,14 @@ def cross_validation_score(df, target, task='classification', backend='lightgbm'
     scores : pd.DataFrame
         DataFrame with cross-validation scores
     """
-    assert target
-    assert target in df, f"Target does not exist in the DataFrame: '{target}'"
-
     # parse strings to a default name
-    task = parse_task_name_string(task)
-    backend = parse_backend_name_string(backend)
+    task: str = parse_task_name_string(task)
+    backend: str = parse_backend_name_string(backend)
 
     # parse parameters
     if params is None:
-        params = {}
+        params: dict = {}
     params['device_type'] = device_type
-
-    # Setup data
-    X = df.drop(columns=target)
-    X = pd.get_dummies(X, drop_first=True)
-    y = df[target]
 
     # setup model
     model = get_model(task, backend, params)
@@ -67,21 +59,23 @@ def cross_validation_score(df, target, task='classification', backend='lightgbm'
                              verbose=verbose)
     if verbose > 0:
         print('\nCross-validation complete!')
+        scores_mean: float = np.sqrt(-scores).mean()
+        scores_std: float = np.sqrt(-scores).std()
+        if task == 'classification':
+            if verbose > 0:
+                print(f'\nAccuracy (%): {scores_mean * 100:.5f} +- {scores_std * 100:.5f}')
+        elif task == 'regression':
+            if verbose > 0:
+                print(f'\nScore (rmse): {scores_mean:.2f} +- {scores_std:.2f}')
+        else:
+            raise_invalid_task_error(task)
 
-    if task == 'classification':
-        if verbose > 0:
-            print(f'\nAccuracy (%): {scores.mean() * 100:.5f} +- {scores.std() * 100:.5f}')
-    elif task == 'regression':
-        scores_mean = np.sqrt(-scores).mean()
-        scores_std = np.sqrt(-scores).std()
-        if verbose > 0:
-            print(f'\nScore (rmse): {scores_mean:.2f} +- {scores_std:.2f}')
-    else:
-        raise_invalid_task_error(task)
-
-    df_scores = pd.DataFrame(data={'score': scores})
-    df_scores.index.name = 'cv'
-    return df_scores
+    return {
+        "scores": scores,
+        "metric": scoring,
+        "task": task,
+        "cv": cv
+    }
 
 
 def get_model(task: str, backend: str, params: dict):
@@ -108,7 +102,7 @@ def get_cv_scoring(task):
     return scoring
 
 
-def cross_validation_score_iter(df, target, task='classification', backend='xgboost',
+def cross_validation_score_iter(X, y, task='classification', backend='xgboost',
                                 params=None, n_rounds=300, nfold=5, stratified=False,
                                 shuffle=True, early_stopping_rounds=15, seed=0,
                                 show_stdv=True, device_type='cpu', verbose=0):
@@ -116,9 +110,9 @@ def cross_validation_score_iter(df, target, task='classification', backend='xgbo
 
     Parameters
     ----------
-    df : pandas.DataFrame
+    X : pandas.DataFrame
         Input DataFrame.
-    target : str or list
+    y : str or list
         Target name or list of names.
     task : str, optional (default='classification')
         Name of the task.
@@ -152,23 +146,15 @@ def cross_validation_score_iter(df, target, task='classification', backend='xgbo
     cv_scores : pandas.DataFrame
         CV Scores per iteration.
     """
-    assert target
-    assert target in df, f"Target does not exist in the DataFrame: '{target}'"
-
     # parse strings to a default name
-    task = parse_task_name_string(task)
-    backend = parse_backend_name_string(backend)
-
-    # Setup data
-    X = df.drop(columns=target)
-    X = pd.get_dummies(X, drop_first=True)
-    y = df[target].values
+    task: str = parse_task_name_string(task)
+    backend: str = parse_backend_name_string(backend)
 
     # Get model / task parameters
     if params is None:
-        params = get_model_parameters(backend)
+        params: dict = get_model_parameters(backend)
     params['params'] = device_type
-    params['objective'] = get_model_task_objective(df, target, task, backend)
+    params['objective'] = get_model_task_objective(y, task, backend)
     metrics = get_task_metrics(task)
 
     if verbose > 0:
@@ -208,11 +194,11 @@ def get_task_metrics(task):
     return metrics
 
 
-def get_model_task_objective(df, target, task, backend):
+def get_model_task_objective(target, task, backend):
     if backend == 'xgboost':
-        objective = xgboost.get_objective_by_task(df, target, task)
+        objective = xgboost.get_objective_by_task(target, task)
     elif backend == 'lightgbm':
-        objective = lightgbm.get_objective_by_task(df, target, task)
+        objective = lightgbm.get_objective_by_task(target, task)
     else:
         raise_invalid_model_backend_error(backend)
     return objective
