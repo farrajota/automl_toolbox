@@ -8,35 +8,31 @@ import xgboost as xgb
 from automl_toolbox.exceptions import raise_invalid_task_error
 
 
-def get_model_by_task(task, params):
+def get_model_by_task(task: str, params: dict):
     """Returns a model for a specific task."""
     assert task
     assert params
-    if task.lower() in ['classification', 'cls']:
+    if task == 'classification':
         model = xgb.XGBClassifier(**params)
-    elif task.lower() in ['regression', 'reg']:
+    elif task == 'regression':
         model = xgb.XGBRegressor(**params)
     else:
         raise_invalid_task_error(task)
     return model
 
 
-def get_objective_by_task(df, target, task):
+def get_objective_by_task(target, task: str) -> str:
     """Returns an objective and a set of metrics for a specific task."""
-    if task.lower() in ['classification', 'cls']:
-        if df[target].nunique() == 2:
+    if task == 'classification':
+        if target.nunique() == 2:
             objective = 'binary:logistic'
         else:
             objective = 'multi:softmax'
-        metrics = 'auc'
-        name = 'classification'
-    elif task.lower() in ['regression', 'reg']:
+    elif task == 'regression':
         objective = 'reg:linear'
-        name = 'regression'
-        metrics = 'rmse'
     else:
         raise_invalid_task_error(task)
-    return name, objective, metrics
+    return objective
 
 
 def cross_validation_iter(data, labels, params, metrics, n_rounds, nfold,
