@@ -54,7 +54,8 @@ class Assistant(object):
     def profile(self,
                 df: pd.DataFrame = None,
                 target: str = None,
-                task: str = None) -> Dict[str, Union[ProfileReport, dict]]:
+                task: str = None,
+                show: Union[bool, str, list] = 'all') -> Dict[str, Union[ProfileReport, dict]]:
         """Generates profile reports from a Pandas DataFrame.
 
         Parameters
@@ -77,5 +78,5 @@ class Assistant(object):
         else:
             df_analysis = self.df
             target_analysis = self.target
-        report: dict = profiler(df_analysis, target_analysis)
+        report: dict = profiler(df_analysis, target_analysis, show=show)
         return report

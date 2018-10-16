@@ -44,14 +44,26 @@ def profiler(df: pd.DataFrame,
     - split refactor into multiple sections that can be appended when needed
     - enable selecting only a subset of the variables for display
     """
+    report: dict = {}
     profile_data = ProfileReport(df)
-    if show.lower() in ['all', 'model']:
+    report["report"] = profile_data
+
+    if isinstance(show, bool):
+        if show:
+            show_components: str = 'all'
+        else:
+            show_components: str = ''
+    elif isinstance(show, str):
+        show_components: str = show.lower()
+    else:
+        raise Exception(f"Undefined type for 'show': {type(bool)}")
+
+    if show_components in ['all', 'model']:
         profile_model: dict = evaluate_model_on_data(df, target, method)
-    display_report(profile_data, profile_model)
-    return {
-        "report": profile_data,
-        "model": profile_model
-    }
+        report["model"] = profile_model
+    if show_components:
+        display_report(profile_data, profile_model)
+    return report
 
 
 def evaluate_model_on_data(df: pd.DataFrame,
