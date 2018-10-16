@@ -23,7 +23,7 @@ This code base is in heavy development for now. Once it reaches `v0.1.0` you may
 
 For now, to install this package you must build it from source. To do that, just run the following command in the terminal:
 
-```
+```bash
 python setup.py install
 ```
 
@@ -49,23 +49,22 @@ This toolbox integrates the following packages in its core for doing most of its
 - feature-tools (automatic feature engineering)
 - [pygdf](https://github.com/rapidsai/pygdf) (GPU DataFrame)
 
-
 ## TODO
 
-Funcionalities to be added to the toolbox:
+Funcionalities intended to be added to the toolbox:
 
-- [ ] data profiler
-- [ ] automatic cleaning of missing values
-- [ ] automatic analysis and cleaning of outliers
+- [x] basic data profiler
+- [ ] automatic analysis / benchmarking and filling of missing values
+- [ ] automatic analysis / benchmarking and cleaning of outliers
 - [ ] automatic feature transformations / normalization
 - [ ] automatic feature engineering
 - [ ] automatic feature selection
 - [ ] automatic model selection
 - [ ] automatic model optimization (hyper-parameter optimization)
-- [ ] automatic ensembling of models
+- [ ] automatic model ensembling
 - [ ] pre-defined parameter list of the most popular ML models in scikit-learn
 - [ ] distributed computing (integrate Dask)
-
+- [ ] pipeline generation
 
 ## License
 
