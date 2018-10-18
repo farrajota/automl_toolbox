@@ -255,22 +255,3 @@ def display_report_text(profile_data: ProfileReport,
             method=profile_model["method"],
             score=profile_model["score"]))
 
-
-def detect_numerical_low_unique_rows_percentage(df: pd.DataFrame,
-                                                thresh_unique: float = 20,
-                                                verbose: bool = True
-                                                ) -> Dict[str, float]:
-    """Checks for low unique number of rows in categorical features."""
-    if verbose:
-        print('\n==> Analysing numerical features:')
-    features_low: Dict[str, float] = {}
-    for feature in df:
-        if is_numeric_dtype(df[feature]):
-            n_unique = df[feature].nunique()
-            feature_size = len(df[feature].dropna())
-            n_unique_percentage = n_unique / feature_size * 100
-            if n_unique_percentage < thresh_unique:
-                features_low[feature] = n_unique_percentage
-                if verbose:
-                    print(f'{feature}: {n_unique_percentage}%  ({n_unique}/{feature_size})')
-    return features_low
