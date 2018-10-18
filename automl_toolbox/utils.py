@@ -74,3 +74,33 @@ def infer_task_type(df: pd.DataFrame, target: str) -> str:
         return 'classification'
     else:
         return 'regression'
+
+
+def parse_or_infer_task_name(df: pd.DataFrame,
+                             target: str,
+                             task: str = None
+                             ) -> str:
+    """Returns the parsed task name.
+
+    Parameters
+    ----------
+    df : pandas.DataFrame
+        Input data.
+    target : str
+        Column name of the target.
+    task : str, optional
+        Type of task to analyze. If no task is passed as input,
+        it will be inferred using the target label with the input
+        DataFrame. Options: 'classification', 'cls', 'regression',
+        'reg', 'clustering', 'cluster'. Default: None.
+
+    Returns
+    -------
+    str
+        Name of the task.
+    """
+    if task:
+        task_name = parse_task_name_string(task)
+    else:
+        task_name = infer_task_type(df, target)
+    return task_name
