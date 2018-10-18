@@ -12,13 +12,13 @@ from sklearn.model_selection import cross_val_score
 from typing import Dict, Union, List, Optional
 
 from automl_toolbox.model_selection import cross_validation_score
-from automl_toolbox.exceptions import raise_invalid_task_error, UndefinedMethodError
-from automl_toolbox.utils import parse_task_name_string
+from automl_toolbox.exceptions import raise_invalid_task_error, raise_clustering_not_implemented_error
+from automl_toolbox.utils import parse_or_infer_task_name, transform_data_target
 
 
 def profiler(df: pd.DataFrame,
              target: str,
-             method: str = 'classification',
+             task: str = None,
              show: str = 'all'
              ) -> Dict[str, Union[ProfileReport, dict]]:
     """Creates a profile report for the input data.
@@ -26,13 +26,17 @@ def profiler(df: pd.DataFrame,
     Parameters
     ----------
     df : pd.DataFrame
-        Input dataframe
+        Input data.
     target : str
-        Name of the feature target for training a model
-    method : str, optional (default='classification')
-        Name of the task to train the model (e.g., classification, regression)
-    show : str, optional (default='all')
-        Displays sections of the profile report.
+        Name of the target feature.
+    task : str, optional
+        Type of task to analyze. If no task is passed as input,
+        it will be inferred using the target label with the input
+        DataFrame. Options: 'classification', 'cls', 'regression',
+        'reg', 'clustering', 'cluster'. Default: None.
+    show : str, optional
+        Manages what information of the profile report is displayed
+        on screen. Options: 'all', 'full', 'basic'. Default: 'all'.
 
     Returns
     -------
@@ -59,7 +63,8 @@ def profiler(df: pd.DataFrame,
         raise Exception(f"Undefined type for 'show': {type(show)}")
 
     if show_components in ['all', 'model']:
-        profile_model: dict = evaluate_model_on_data(df, target, method)
+        task_name = parse_or_infer_task_name(df, target, task)
+        profile_model: dict = evaluate_model_on_data(df, target, task_name)
         report["model"] = profile_model
     if show_components:
         display_report(profile_data, profile_model)
@@ -72,14 +77,8 @@ def evaluate_model_on_data(df: pd.DataFrame,
                            ) -> Dict[str, Union[str, float, int, dict]]:
     """Trains and evaluates the performance of a lightgbm model
     on the data."""
-    task_parsed: str = parse_task_name_string(task)
-
-    # Setup data
-    X = df.drop(columns=target)
-    X = pd.get_dummies(X, drop_first=True)
-    y = df[target]
-
-    cross_val_data: dict = cross_validation_score(X, y, task_parsed)
+    X, y = transform_data_target(df, target)
+    cross_val_data: dict = cross_validation_score(X, y, task)
     scores_mean: float = cross_val_data["scores"].mean()
     scores_std: float = cross_val_data["scores"].std()
     cv: int = cross_val_data["cv"]
@@ -87,25 +86,27 @@ def evaluate_model_on_data(df: pd.DataFrame,
 
     num_feats: int = len(X.columns)
     num_samples: int = len(X)
-    if task_parsed == 'classification':
+    if task == 'classification':
         html: str = create_html_model_evaluation_classification(
             scores_mean=scores_mean,
             scores_std=scores_std,
             num_feats=num_feats,
             cv=cv,
             metric=metric)
-    elif task_parsed == 'regression':
+    elif task == 'regression':
         html: str = create_html_model_evaluation_regression(
             scores_mean=scores_mean,
             scores_std=scores_std,
             num_feats=num_feats,
             cv=cv,
             metric=metric)
+    elif task == 'clustering':
+        raise_clustering_not_implemented_error()
     else:
-        raise_invalid_task_error(task_parsed)
+        raise_invalid_task_error(task)
 
     return {
-        "task": task_parsed,
+        "task": task,
         "scores": {
             "mean": scores_mean,
             "std": scores_std,
@@ -122,7 +123,8 @@ def create_html_model_evaluation_classification(scores_mean: float,
                                                 scores_std: float,
                                                 num_feats: int,
                                                 cv: int,
-                                                metric: str) -> str:
+                                                metric: str
+                                                ) -> str:
     return f"""
         <div>
             <p class="h4">Model evaluation</p>
@@ -166,7 +168,8 @@ def create_html_model_evaluation_regression(scores_mean: float,
                                             scores_std: float,
                                             num_feats: int,
                                             cv: int,
-                                            metric: str) -> str:
+                                            metric: str
+                                            ) -> str:
     return f"""
         <div>
             <p class="h4">Model evaluation</p>
@@ -228,6 +231,7 @@ def display_report_text(profile_data: ProfileReport,
                         profile_model: Union[dict, None]
                         ) -> None:
     """Displays the report info as text on screen."""
+    raise Exception("Functionality not yet implemented.")
     print("Overview\n")
     print("")
     print("Dataset info\n")
@@ -254,4 +258,3 @@ def display_report_text(profile_data: ProfileReport,
         print("{method} score: {score} (LightGBM)".format(
             method=profile_model["method"],
             score=profile_model["score"]))
-
