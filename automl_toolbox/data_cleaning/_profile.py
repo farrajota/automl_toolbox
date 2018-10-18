@@ -56,7 +56,7 @@ def profiler(df: pd.DataFrame,
     elif isinstance(show, str):
         show_components: str = show.lower()
     else:
-        raise Exception(f"Undefined type for 'show': {type(bool)}")
+        raise Exception(f"Undefined type for 'show': {type(show)}")
 
     if show_components in ['all', 'model']:
         profile_model: dict = evaluate_model_on_data(df, target, method)
