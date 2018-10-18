@@ -46,3 +46,26 @@ def transform_data_target(df: pd.DataFrame, target: str):
     X = pd.get_dummies(X, drop_first=True)
     y = df[target]
     return X, y
+
+
+def infer_task_type(df: pd.DataFrame, target: str) -> str:
+    """Infers the type of the task by using the data of the target
+    column of a Pandas DataFrame.
+
+    Parameters
+    ----------
+    df : pandas.DataFrame
+        Input data.
+    target : str
+        Column name of the target.
+
+    Returns
+    -------
+    str
+        Name of the task.
+    """
+    target_df = df[target]
+    if target_df.nunique() / len(target_df) <= 0.5:
+        return 'classification'
+    else:
+        return 'regression'
