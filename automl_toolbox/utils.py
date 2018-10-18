@@ -4,14 +4,19 @@ Utility methods.
 
 
 import pandas as pd
-from .exceptions import raise_invalid_task_error, raise_invalid_model_backend_error
+from .exceptions import (raise_clustering_not_implemented_error,
+                         raise_invalid_task_error,
+                         raise_invalid_model_backend_error)
 
 
 def parse_task_name_string(task: str) -> str:
-    if task.lower() in ['classification', 'cls']:
+    task_l = task.lower()
+    if task_l in ['classification', 'cls']:
         task_name = 'classification'
-    elif task.lower() in ['regression', 'reg']:
+    elif task_l in ['regression', 'reg']:
         task_name = 'regression'
+    elif task_l in ['clustering', 'cluster']:
+        raise_clustering_not_implemented_error()
     else:
         raise_invalid_task_error(task)
     return task_name
