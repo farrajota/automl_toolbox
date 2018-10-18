@@ -3,6 +3,7 @@ Utility methods.
 """
 
 
+import pandas as pd
 from .exceptions import raise_invalid_task_error, raise_invalid_model_backend_error
 
 
@@ -24,3 +25,24 @@ def parse_backend_name_string(backend: str) -> str:
     else:
         raise_invalid_model_backend_error(backend)
     return backend_name
+
+
+def transform_data_target(df: pd.DataFrame, target: str):
+    """Transforms the data format to be used by models.
+
+    Parameters
+    ----------
+    df : pandas.DataFrame
+        Input data.
+    target : str
+        Column name of the target.
+
+    Returns
+    -------
+    pandas.DataFrame, pandas.Series
+        Returns the features and the target transformed and splitted.
+    """
+    X = df.drop(columns=target)
+    X = pd.get_dummies(X, drop_first=True)
+    y = df[target]
+    return X, y
