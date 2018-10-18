@@ -7,6 +7,7 @@ cross-validation on Pandas DataFrames.
 import numpy as np
 import pandas as pd
 from sklearn.model_selection import cross_val_score
+from typing import Dict, Union
 
 from automl_toolbox.model_selection import xgboost
 from automl_toolbox.model_selection import lightgbm
@@ -16,7 +17,8 @@ from automl_toolbox.utils import parse_backend_name_string, parse_task_name_stri
 
 def cross_validation_score(X, y, task='classification', backend='lightgbm',
                            params=None, cv=5, n_jobs=None, device_type='cpu',
-                           verbose=0):
+                           verbose=0
+                           ) -> Dict[str, Union[str, int, np.ndarray]]:
     """Evaluates a Gradient Boosting Tree model by cross-validation.
 
     Parameters
@@ -25,15 +27,15 @@ def cross_validation_score(X, y, task='classification', backend='lightgbm',
         Input DataFrame.
     y : str/list
         Target feature name(s).
-    task : str, optional (default='classification')
-        Name of the task.
-    backend : str, optional (default='lightgbm')
-        Name of the model's backend.
+    task : str, optional
+        Name of the task. Default: 'classification'.
+    backend : str, optional
+        Name of the model's backend. Default: 'lightgbm'.
 
     Returns
     -------
-    scores : pd.DataFrame
-        DataFrame with cross-validation scores
+    dict
+        Dictionary containing scores, metric, cv and task information.
     """
     # parse strings to a default name
     task: str = parse_task_name_string(task)
