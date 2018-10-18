@@ -34,38 +34,91 @@ import pandas as pd
 from pandas_profiling import ProfileReport
 from typing import Dict, Union, List, Optional
 
-from .utils import parse_task_name_string, parse_backend_name_string
 from .data_cleaning import profiler
+from .utils import parse_backend_name_string, parse_or_infer_task_name
 
 
 class Assistant(object):
-    """Data Science Assistance / Wizard."""
+    """Data Science Assistance / Wizard.
+
+        Parameters
+    ----------
+    df : pandas.DataFrame
+        Input data.
+    target : str
+        Target column name.
+    task : str, optional
+        Type of task to analyze. If no task is passed as input,
+        it will be inferred using the target label with the input
+        DataFrame. Options: 'classification', 'cls', 'regression',
+        'reg', 'clustering', 'cluster'. Default: None.
+    backend : str, optional
+        Name of the model's backend. Default: 'lightgbm'.
+    """
 
     def __init__(self,
                  df: pd.DataFrame,
                  target: str,
-                 task: str = 'classification',
+                 task: str = None,
+                 backend: str = 'lightgbm'
+                 ) -> None:
+        self.df = df
+        self.target = target
+        self.task = parse_or_infer_task_name(self.df, self.target, task)
+        self.backend = parse_backend_name_string(backend)
+        self.data = DataProfiler(self.df, self.target, self.task, self.backend)
+
+
+class DataProfiler(object):
+    """Analyses and profiles the data.
+
+    Parameters
+    ----------
+    df : pandas.DataFrame
+        Input data.
+    target : str
+        Target column name.
+    task : str, optional
+        Type of task to analyze. If no task is passed as input,
+        it will be inferred using the target label with the input
+        DataFrame. Options: 'classification', 'cls', 'regression',
+        'reg', 'clustering', 'cluster'. Default: None.
+    backend : str, optional
+        Name of the model's backend. Default: 'lightgbm'.
+    """
+
+    def __init__(self,
+                 df: pd.DataFrame,
+                 target: str,
+                 task: str = None,
                  backend: str = 'lightgbm') -> None:
         self.df = df
         self.target = target
-        self.task = parse_task_name_string(task)
+        self.task = parse_or_infer_task_name(self.df, self.target, task)
         self.backend = parse_backend_name_string(backend)
 
     def profile(self,
                 df: pd.DataFrame = None,
                 target: str = None,
                 task: str = None,
-                show: Union[bool, str, list] = 'all') -> Dict[str, Union[ProfileReport, dict]]:
+                show: Union[bool, str, list] = 'all'
+                ) -> Dict[str, Union[ProfileReport, dict]]:
         """Generates profile reports from a Pandas DataFrame.
 
         Parameters
         ----------
         df : pandas.DataFrame, optional
-            Input pandas DataFrame to be profiled.
+            Input pandas DataFrame to be profiled. Default: None.
         target : str, optional
-            Target column of the DataFrame.
+            Target column of the DataFrame. Default: None.
         task : str, optional
-            Type of task to analyze. Options: ('classification', 'cls', 'regression', 'reg')
+            Type of task to analyze. If no task is passed as input,
+            it will be inferred using the target label with the input
+            DataFrame. Options: 'classification', 'cls', 'regression',
+            'reg', 'clustering', 'cluster'. Default: None.
+        show : bool | str | list, optional
+            Manages what information of the profile report is displayed
+            on screen. Options: 'all', 'full', 'basic'. Default: 'all'
 
         Returns
         -------
@@ -75,8 +128,13 @@ class Assistant(object):
         if df:
             df_analysis = df
             target_analysis = target
+            task_analysis = parse_or_infer_task_name(df_analysis, target_analysis, task)
         else:
             df_analysis = self.df
             target_analysis = self.target
-        report: dict = profiler(df_analysis, target_analysis, show=show)
+            task_analysis = self.task
+        report: dict = profiler(df=df_analysis,
+                                target=target_analysis,
+                                task=task_analysis,
+                                show=show)
         return report
